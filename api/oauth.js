@@ -1,39 +1,37 @@
 import crypto from 'crypto';
 
 export default function handler(req, res) {
-  const clientKey = 'sbaw8lma7orsl3dfeg';
-  const redirectUri = 'https://veridostu-veridostus-projects.vercel.app/api/oauth-callback';
+  const CLIENT_KEY = 'sbaw8lma7orsl3dfeg';
+  const REDIRECT_URI = 'https://veridostu-veridostus-projects.vercel.app/api/oauth-callback';
 
-  // PKCE için code_verifier oluştur
+  // PKCE code_verifier ve code_challenge oluştur
   const codeVerifier = crypto.randomBytes(32).toString('base64url');
-
-  // code_challenge (SHA256 base64url)
   const codeChallenge = crypto
     .createHash('sha256')
     .update(codeVerifier)
     .digest('base64url');
 
-  // CSRF koruması için state oluştur
+  // CSRF koruma için state oluştur
   const state = crypto.randomBytes(16).toString('hex');
 
-  // Cookie'leri set et (HttpOnly, secure ayarla production'da)
+  // Cookie olarak code_verifier ve state sakla (HttpOnly, 10 dakika)
   res.setHeader('Set-Cookie', [
     `code_verifier=${codeVerifier}; Path=/; HttpOnly; Max-Age=600; SameSite=Lax`,
     `state=${state}; Path=/; HttpOnly; Max-Age=600; SameSite=Lax`,
   ]);
 
-  // TikTok OAuth authorize URL parametreleri
+  // TikTok authorize URL parametreleri (redirect_uri sadece base URL)
   const params = new URLSearchParams({
-    client_key: clientKey,
+    client_key: CLIENT_KEY,
     scope: 'user.info.basic',
     response_type: 'code',
-    redirect_uri: redirectUri,
+    redirect_uri: REDIRECT_URI,
     state,
     code_challenge: codeChallenge,
     code_challenge_method: 'S256',
   });
 
-  const authUrl = `https://www.tiktok.com/auth/authorize/?${params.toString()}`;
+  const url = `https://www.tiktok.com/auth/authorize/?${params.toString()}`;
 
-  res.redirect(authUrl);
+  return res.redirect(url);
 }
