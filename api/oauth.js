@@ -4,23 +4,25 @@ export default function handler(req, res) {
   const CLIENT_KEY = 'sbaw8lma7orsl3dfeg';
   const REDIRECT_URI = 'https://veridostu-veridostus-projects.vercel.app/api/oauth-callback';
 
-  // PKCE code_verifier ve code_challenge oluştur
+  // PKCE için code_verifier oluştur
   const codeVerifier = crypto.randomBytes(32).toString('base64url');
+
+  // code_challenge hesapla (SHA256 ve base64url)
   const codeChallenge = crypto
     .createHash('sha256')
     .update(codeVerifier)
     .digest('base64url');
 
-  // CSRF koruma için state oluştur
+  // CSRF koruması için state oluştur
   const state = crypto.randomBytes(16).toString('hex');
 
-  // Cookie olarak code_verifier ve state sakla (HttpOnly, 10 dakika)
+  // Cookie olarak sakla (HttpOnly, 10 dakika)
   res.setHeader('Set-Cookie', [
     `code_verifier=${codeVerifier}; Path=/; HttpOnly; Max-Age=600; SameSite=Lax`,
     `state=${state}; Path=/; HttpOnly; Max-Age=600; SameSite=Lax`,
   ]);
 
-  // TikTok authorize URL parametreleri (redirect_uri sadece base URL)
+  // TikTok authorize URL parametreleri (redirect_uri sadece callback URL, parametresiz)
   const params = new URLSearchParams({
     client_key: CLIENT_KEY,
     scope: 'user.info.basic',
@@ -33,5 +35,6 @@ export default function handler(req, res) {
 
   const url = `https://www.tiktok.com/auth/authorize/?${params.toString()}`;
 
-  return res.redirect(url);
+  // Kullanıcıyı TikTok login sayfasına yönlendir
+  res.redirect(url);
 }
