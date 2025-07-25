@@ -2,9 +2,9 @@
 import fetch from 'node-fetch';
 
 export default async function handler(req, res) {
-  const CLIENT_KEY = process.env.TIKTOK_CLIENT_KEY;
-  const CLIENT_SECRET = process.env.TIKTOK_CLIENT_SECRET;
-  const REDIRECT_URI = process.env.TIKTOK_REDIRECT_URI;
+  const CLIENT_KEY = sbaw8lma7orsl3dfeg;
+  const CLIENT_SECRET = Nb2JUZ3rOZmIyESBMpVE5ukKhbCzdlx0;
+  const REDIRECT_URI =https://veridostu.vercel.app/api/oauth-callback;
 
   const { code, state } = req.query;
   const cookie = req.headers.cookie || '';
