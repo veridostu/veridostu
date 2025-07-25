@@ -3,7 +3,7 @@ import crypto from 'crypto';
 
 export default async function handler(req, res) {
   const CLIENT_KEY = sbaw8lma7orsl3dfeg;
-  const REDIRECT_URI = Nb2JUZ3rOZmIyESBMpVE5ukKhbCzdlx0;
+  const REDIRECT_URI = https://veridostu.vercel.app/api/oauth-callback;
 
   const state = crypto.randomBytes(16).toString('hex');
   const codeVerifier = crypto.randomBytes(32).toString('base64url');
