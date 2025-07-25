@@ -1,8 +1,7 @@
 export default async function handler(req, res) {
   try {
-    // Sabit değer olarak CLIENT KEY, SECRET ve REDIRECT URI yazılıyor
-    const CLIENT_KEY = 'sbaw8lma7orsl3dfeg'; 
-    const CLIENT_SECRET = 'Nb2JUZ3rOZmIyESBMpVE5ukKhbCzdlx0'; 
+    const CLIENT_KEY = 'sbaw8lma7orsl3dfeg';
+    const CLIENT_SECRET = 'Nb2JUZ3rOZmIyESBMpVE5ukKhbCzdlx0';
     const REDIRECT_URI = 'https://veridostu-veridostus-projects.vercel.app/api/oauth-callback';
 
     const { code, state } = req.query;
@@ -33,15 +32,21 @@ export default async function handler(req, res) {
       body: body.toString(),
     });
 
-    const json = await tokenRes.json();
+    const text = await tokenRes.text();
 
-    if (!tokenRes.ok) {
-      return res.status(tokenRes.status).json(json);
+    try {
+      const json = JSON.parse(text);
+      if (!tokenRes.ok) {
+        return res.status(tokenRes.status).json(json);
+      }
+      return res.status(200).json(json.data);
+    } catch (parseError) {
+      console.error('TikTok JSON parse error:', text);
+      return res.status(500).json({ error: 'Invalid JSON response from TikTok', raw: text });
     }
 
-    res.status(200).json(json.data);
   } catch (error) {
-    console.error('Error in /api/oauth-callback:', error);
-    res.status(500).json({ error: 'Internal Server Error', message: error.message });
+    console.error('Internal server error:', error);
+    return res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 }
