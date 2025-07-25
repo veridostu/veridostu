@@ -33,7 +33,7 @@ export default function handler(req, res) {
     code_challenge_method: 'S256',
   });
 
-  const authUrl = 'https://www.tiktok.com/auth/authorize/?${params.toString()}';
+  const authUrl = `https://www.tiktok.com/auth/authorize/?${params.toString()}`;
 
   res.redirect(authUrl);
 }
