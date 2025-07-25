@@ -1,52 +1,32 @@
+import crypto from 'crypto';
+
 export default async function handler(req, res) {
-  try {
-    const CLIENT_KEY = 'sbaw8lma7orsl3dfeg';
-    const CLIENT_SECRET = 'Nb2JUZ3rOZmIyESBMpVE5ukKhbCzdlx0';
-    const REDIRECT_URI = 'https://veridostu-veridostus-projects.vercel.app/api/oauth-callback';
+  const CLIENT_KEY = 'sbaw8lma7orsl3dfeg';
+  const REDIRECT_URI = 'https://veridostu-veridostus-projects.vercel.app/api/oauth-callback';
 
-    const { code, state } = req.query;
-    const cookie = req.headers.cookie || '';
-    const cookieMap = Object.fromEntries(cookie.split('; ').map(c => c.split('=')));
+  const state = crypto.randomBytes(16).toString('hex');
+  const codeVerifier = crypto.randomBytes(32).toString('base64url');
+  const codeChallenge = crypto
+    .createHash('sha256')
+    .update(codeVerifier)
+    .digest('base64url');
 
-    if (state !== cookieMap.state) {
-      return res.status(403).send('Invalid state parameter');
-    }
+  // Tarayıcıya state ve codeVerifier cookie olarak gönderiliyor
+  res.setHeader('Set-Cookie', [
+    `state=${state}; Path=/; HttpOnly; Max-Age=600; SameSite=Lax`,
+    `code_verifier=${codeVerifier}; Path=/; HttpOnly; Max-Age=600; SameSite=Lax`,
+  ]);
 
-    const codeVerifier = cookieMap.code_verifier;
-    if (!codeVerifier) {
-      return res.status(400).send('Missing code_verifier');
-    }
+  const params = new URLSearchParams({
+    client_key: CLIENT_KEY,
+    scope: 'user.info.basic',
+    response_type: 'code',
+    redirect_uri: REDIRECT_URI,
+    state: state,
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256',
+  });
 
-    const body = new URLSearchParams({
-      client_key: CLIENT_KEY,
-      client_secret: CLIENT_SECRET,
-      code,
-      grant_type: 'authorization_code',
-      redirect_uri: REDIRECT_URI,
-      code_verifier: codeVerifier,
-    });
-
-    const tokenRes = await fetch('https://open.tiktokapis.com/v2/oauth/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString(),
-    });
-
-    const text = await tokenRes.text();
-
-    try {
-      const json = JSON.parse(text);
-      if (!tokenRes.ok) {
-        return res.status(tokenRes.status).json(json);
-      }
-      return res.status(200).json(json.data);
-    } catch (parseError) {
-      console.error('TikTok JSON parse error:', text);
-      return res.status(500).json({ error: 'Invalid JSON response from TikTok', raw: text });
-    }
-
-  } catch (error) {
-    console.error('Internal server error:', error);
-    return res.status(500).json({ error: 'Internal Server Error', message: error.message });
-  }
+  const authUrl = `https://www.tiktok.com/v2/auth/authorize/?${params.toString()}`;
+  res.redirect(authUrl);
 }
