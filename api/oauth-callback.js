@@ -1,34 +1,32 @@
-// api/oauth-callback.js
-import fetch from 'node-fetch';
-
 export default async function handler(req, res) {
-  const CLIENT_KEY = sbaw8lma7orsl3dfeg;
-  const CLIENT_SECRET = Nb2JUZ3rOZmIyESBMpVE5ukKhbCzdlx0;
-  const REDIRECT_URI =https://veridostu.vercel.app/api/oauth-callback;
-
-  const { code, state } = req.query;
-  const cookie = req.headers.cookie || '';
-  const cookieMap = Object.fromEntries(cookie.split('; ').map(c => c.split('=')));
-
-  if (state !== cookieMap.state) {
-    return res.status(403).send('Invalid state parameter');
-  }
-
-  const codeVerifier = cookieMap.code_verifier;
-  if (!codeVerifier) {
-    return res.status(400).send('Missing code_verifier');
-  }
-
-  const body = new URLSearchParams({
-    client_key: CLIENT_KEY,
-    client_secret: CLIENT_SECRET,
-    code,
-    grant_type: 'authorization_code',
-    redirect_uri: REDIRECT_URI,
-    code_verifier: codeVerifier,
-  });
-
   try {
+    // Sabit değer olarak CLIENT KEY, SECRET ve REDIRECT URI yazılıyor
+    const CLIENT_KEY = 'sbaw8lma7orsl3dfeg'; 
+    const CLIENT_SECRET = 'Nb2JUZ3rOZmIyESBMpVE5ukKhbCzdlx0'; 
+    const REDIRECT_URI = 'https://veridostu-veridostus-projects.vercel.app/api/oauth-callback';
+
+    const { code, state } = req.query;
+    const cookie = req.headers.cookie || '';
+    const cookieMap = Object.fromEntries(cookie.split('; ').map(c => c.split('=')));
+
+    if (state !== cookieMap.state) {
+      return res.status(403).send('Invalid state parameter');
+    }
+
+    const codeVerifier = cookieMap.code_verifier;
+    if (!codeVerifier) {
+      return res.status(400).send('Missing code_verifier');
+    }
+
+    const body = new URLSearchParams({
+      client_key: CLIENT_KEY,
+      client_secret: CLIENT_SECRET,
+      code,
+      grant_type: 'authorization_code',
+      redirect_uri: REDIRECT_URI,
+      code_verifier: codeVerifier,
+    });
+
     const tokenRes = await fetch('https://open.tiktokapis.com/v2/oauth/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -41,9 +39,9 @@ export default async function handler(req, res) {
       return res.status(tokenRes.status).json(json);
     }
 
-    res.status(200).json(json.data); // token ve user info dönecek
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('OAuth error');
+    res.status(200).json(json.data);
+  } catch (error) {
+    console.error('Error in /api/oauth-callback:', error);
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 }
