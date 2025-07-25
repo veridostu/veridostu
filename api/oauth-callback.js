@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     });
 
     // TikTok token endpoint'ine POST isteği yap
-    const tokenRes = await fetch('https://open.tiktokapis.com/v2/oauth/token', {
+    const tokenRes = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body.toString(),
