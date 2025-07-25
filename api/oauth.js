@@ -2,8 +2,8 @@
 import crypto from 'crypto';
 
 export default async function handler(req, res) {
-  const CLIENT_KEY = process.env.TIKTOK_CLIENT_KEY;
-  const REDIRECT_URI = process.env.TIKTOK_REDIRECT_URI;
+  const CLIENT_KEY = sbaw8lma7orsl3dfeg;
+  const REDIRECT_URI = Nb2JUZ3rOZmIyESBMpVE5ukKhbCzdlx0;
 
   const state = crypto.randomBytes(16).toString('hex');
   const codeVerifier = crypto.randomBytes(32).toString('base64url');
