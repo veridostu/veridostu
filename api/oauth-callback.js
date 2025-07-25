@@ -8,8 +8,9 @@ export default async function handler(req, res) {
 
     const { code, state } = req.query;
 
+    // Cookie’den state ve code_verifier oku
     const cookie = req.headers.cookie || '';
-    const cookies = Object.fromEntries(cookie.split('; ').map(c => c.trim().split('=')));
+    const cookies = Object.fromEntries(cookie.split(';').map(c => c.trim().split('=')));
 
     if (!state || state !== cookies.state) {
       return res.status(403).json({ error: 'Invalid state parameter' });
@@ -20,6 +21,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing code_verifier' });
     }
 
+    // Token almak için parametreler
     const params = new URLSearchParams({
       client_key: CLIENT_KEY,
       client_secret: CLIENT_SECRET,
@@ -29,6 +31,7 @@ export default async function handler(req, res) {
       code_verifier: codeVerifier,
     });
 
+    // TikTok token endpoint’ine POST isteği
     const tokenResponse = await fetch('https://open.tiktokapis.com/v2/oauth/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -39,12 +42,14 @@ export default async function handler(req, res) {
 
     try {
       const data = JSON.parse(text);
+
       if (!tokenResponse.ok) {
         return res.status(tokenResponse.status).json(data);
       }
 
+      // Başarılı token cevabı
       return res.status(200).json(data.data);
-    } catch (error) {
+    } catch {
       return res.status(500).json({ error: 'Invalid JSON response', raw: text });
     }
   } catch (error) {
